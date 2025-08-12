@@ -27,3 +27,9 @@ module "network" {
   vnet_name = local.vnet_name_full
   subnet_name = local.subnet_name_full
 }
+
+module "budget" {
+  source = "./budget"
+  email = var.email
+}
+

@@ -1,32 +1,49 @@
+######################################
+# RESOURCE GROUP for Backup
+######################################
 resource "azurerm_resource_group" "example" {
   name     = "rg-backup"
-  location = "eastus"
+  location = "eastus"  # Backup vault location, close to resources for performance
 }
 
+######################################
+# RECOVERY SERVICES VAULT
+######################################
 resource "azurerm_recovery_services_vault" "example" {
   name                = "example-vault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard"
+  sku                 = "Standard"  # Standard SKU enables more features and backup types
 }
 
+######################################
+# BACKUP POLICY for Virtual Machines
+######################################
 resource "azurerm_backup_policy_vm" "example" {
   name                = "example-policy"
   resource_group_name = azurerm_resource_group.example.name
   recovery_vault_name = azurerm_recovery_services_vault.example.name
-  timezone            = "UTC"
+  timezone            = "UTC"  # Schedule timezone for backups
 
   backup {
-    frequency = "Daily"
-    time      = "23:00"
+    frequency = "Daily"       # Take backup every day
+    time      = "23:00"       # At 11 PM UTC, off-peak hours
   }
 
   retention_daily {
-    count = 7
+    count = 7                # Keep daily backups for 7 days (7 restore points)
   }
 
   retention_weekly {
-    count          = 2
-    weekdays       = ["Sunday"]
+    count    = 2             # Keep weekly backups for 2 weeks (2 restore points)
+    weekdays = ["Sunday"]    # Weekly retention applies to Sunday backups only
+
+    # Note: Weekly retention does NOT create new backups.
+    # It extends retention time of the Sunday daily backup to 2 weeks instead of 7 days.
   }
+
+  # Total restore points retained at any time:
+  # 7 daily backups (one per day)
+  # + 2 weekly backups (Sunday backups kept longer)
+  # = 9 restore points maximum stored in the vault
 }
