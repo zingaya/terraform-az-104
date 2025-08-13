@@ -29,64 +29,18 @@ resource "azurerm_subnet" "main1" {
 # NETWORK INTERFACES (NICs)
 ######################################
 
-# Pre-create NICs for web and SQL servers to avoid provisioning full VMs and reduce costs
-resource "azurerm_network_interface" "web1" {
-  name                = "web1"
+resource "azurerm_network_interface" "nic" {
+  for_each            = var.nics
+  name                = each.key
   resource_group_name = var.rg_name
   location            = var.location
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.main0.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface" "web2" {
-  name                = "web2"
-  resource_group_name = var.rg_name
-  location            = var.location
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.main0.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface" "sql1" {
-  name                = "sql1"
-  resource_group_name = var.rg_name
-  location            = var.location
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.main0.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface" "sql2" {
-  name                = "sql2"
-  resource_group_name = var.rg_name
-  location            = var.location
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.main0.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface" "admin1" {
-  # NIC for admin VM placed in separate subnet to isolate admin network traffic
-  name                = "admin1"
-  resource_group_name = var.rg_name
-  location            = var.location
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.main1.id
+    subnet_id                     = lookup({
+      "0" = azurerm_subnet.main0.id,
+      "1" = azurerm_subnet.main1.id
+    }, each.value.subnet_suffix)
     private_ip_address_allocation = "Dynamic"
   }
 }

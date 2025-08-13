@@ -2,16 +2,16 @@
 # APPLICATION SECURITY GROUPS (ASGs)
 ######################################
 
-# Group NICs representing webservers for easier NSG rules targeting
-resource "azurerm_application_security_group" "web_asg" {
-  name                = "asg-web"
-  resource_group_name = var.rg_name
-  location            = var.location
+locals {
+  # Collect all unique ASGs from NICs
+  used_asgs = distinct(flatten([
+    for nic in values(var.nics) : nic.asgs
+  ]))
 }
 
-# Group NICs representing mysql servers for easier NSG rules targeting
-resource "azurerm_application_security_group" "sql_asg" {
-  name                = "sql-web"
+resource "azurerm_application_security_group" "asg" {
+  for_each            = toset(local.used_asgs)
+  name                = "asg-${each.value}"
   resource_group_name = var.rg_name
   location            = var.location
 }
@@ -25,7 +25,6 @@ resource "azurerm_network_security_group" "main" {
   location            = var.location
   resource_group_name = var.rg_name
 
-  # Deny all inbound traffic by default - Least Privilege
   security_rule {
     name                       = "Deny-All-Inbound"
     priority                   = 4096
@@ -38,30 +37,11 @@ resource "azurerm_network_security_group" "main" {
     destination_address_prefix = "*"
   }
 
-  # Allow SSH inbound only from admin subnet CIDR range (example: 10.0.1.0/24)
-  security_rule {
-    name                       = "Allow-SSH-From-Admin-Subnet"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "10.0.1.0/24" # Admin subnet CIDR (replace as needed)
-    destination_address_prefix = "*"
-  }
-
-  # Allow MySQL inbound (port 3306) from webservers ASG to SQL servers ASG
-  security_rule {
-    name                        = "Allow-MySQL-From-Web-ASG"
-    priority                    = 110
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "3306"
-    source_application_security_group_ids      = [azurerm_application_security_group.web_asg.id]
-    destination_application_security_group_ids = [azurerm_application_security_group.sql_asg.id]
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to all security_rule blocks except the initial one
+      security_rule
+    ]
   }
 }
 
@@ -75,34 +55,34 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
 }
 
 ######################################
-# ASSOCIATE IP CONFIGURATION TO ASGs
+# ASG ASSOCIATIONS (MULTIPLE PER NIC)
 ######################################
 
-resource "azurerm_network_interface_application_security_group_association" "web1_asg" {
-  network_interface_id          = azurerm_network_interface.web1.id
-  application_security_group_id = azurerm_application_security_group.web_asg.id
+locals {
+  nic_asg_pairs = flatten([
+    for nic_name, nic in var.nics : [
+      for asg in nic.asgs : {
+        nic_name = nic_name
+        asg_name = asg
+      }
+    ]
+  ])
 }
 
-resource "azurerm_network_interface_application_security_group_association" "web2_asg" {
-  network_interface_id          = azurerm_network_interface.web2.id
-  application_security_group_id = azurerm_application_security_group.web_asg.id
-}
+resource "azurerm_network_interface_application_security_group_association" "asg_assoc" {
+  for_each = {
+    for pair in local.nic_asg_pairs : "${pair.nic_name}-${pair.asg_name}" => pair
+  }
 
-resource "azurerm_network_interface_application_security_group_association" "sql1_asg" {
-  network_interface_id          = azurerm_network_interface.sql1.id
-  application_security_group_id = azurerm_application_security_group.sql_asg.id
-}
-
-resource "azurerm_network_interface_application_security_group_association" "sql2_asg" {
-  network_interface_id          = azurerm_network_interface.sql2.id
-  application_security_group_id = azurerm_application_security_group.sql_asg.id
+  network_interface_id          = azurerm_network_interface.nic[each.value.nic_name].id
+  application_security_group_id = azurerm_application_security_group.asg[each.value.asg_name].id
 }
 
 ######################################
 # ADDITIONAL NSG RULE: ALLOW HTTP FOR ADMIN TO WEB ASG ONLY
 ######################################
 
-resource "azurerm_network_security_rule" "rule2" {
+resource "azurerm_network_security_rule" "adminrule1" {
   name                        = "Allow-8080-Admin-Subnet"
   priority                    = 120
   direction                   = "Inbound"
@@ -114,8 +94,53 @@ resource "azurerm_network_security_rule" "rule2" {
   resource_group_name         = var.rg_name
   network_security_group_name = azurerm_network_security_group.main.name
 
-  # Restrict HTTP traffic only to NICs assigned to the web ASG
   destination_application_security_group_ids = [
-    azurerm_application_security_group.web_asg.id
+    azurerm_application_security_group.asg["web_asg"].id
   ]
+}
+
+resource "azurerm_network_security_rule" "adminrule2" {
+  name                        = "Allow-Mysql-Admin-Subnet"
+  priority                    = 130
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3306"
+  source_address_prefix       = "10.0.1.0/24"
+  resource_group_name         = var.rg_name
+  network_security_group_name = azurerm_network_security_group.main.name
+
+  destination_application_security_group_ids = [
+    azurerm_application_security_group.asg["sql_asg"].id
+  ]
+}
+
+resource "azurerm_network_security_rule" "rule1" {
+  name                       = "Allow-SSH-From-Admin-Subnet"
+  priority                   = 1000
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_range     = "22"
+  source_address_prefix      = "10.0.1.0/24"
+  destination_address_prefix = "*"
+  resource_group_name         = var.rg_name
+  network_security_group_name = azurerm_network_security_group.main.name
+}
+
+resource "azurerm_network_security_rule" "rule2" {
+  name                        = "Allow-MySQL-From-Web-ASG"
+  priority                    = 200
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3306"
+  resource_group_name         = var.rg_name
+  network_security_group_name = azurerm_network_security_group.main.name
+
+  source_application_security_group_ids      = [azurerm_application_security_group.asg["web_asg"].id]
+  destination_application_security_group_ids = [azurerm_application_security_group.asg["sql_asg"].id]
 }

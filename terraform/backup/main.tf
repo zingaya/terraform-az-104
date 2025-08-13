@@ -1,27 +1,26 @@
 ######################################
-# RESOURCE GROUP for Backup
-######################################
-resource "azurerm_resource_group" "example" {
-  name     = "rg-backup"
-  location = "eastus"  # Backup vault location, close to resources for performance
-}
-
-######################################
 # RECOVERY SERVICES VAULT
 ######################################
 resource "azurerm_recovery_services_vault" "example" {
-  name                = "example-vault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard"  # Standard SKU enables more features and backup types
+  name                = "${var.backup_name}-vault"
+  location            = var.location
+  resource_group_name = var.rg_name
+  sku                 = "Standard"
+  storage_mode_type   = "LocallyRedundant"
+
+  public_network_access_enabled = false
+
+  tags = {
+    environment = "${terraform.workspace}"
+  }
 }
 
 ######################################
 # BACKUP POLICY for Virtual Machines
 ######################################
 resource "azurerm_backup_policy_vm" "example" {
-  name                = "example-policy"
-  resource_group_name = azurerm_resource_group.example.name
+  name                = "${var.backup_name}-policy"
+  resource_group_name = var.rg_name
   recovery_vault_name = azurerm_recovery_services_vault.example.name
   timezone            = "UTC"  # Schedule timezone for backups
 

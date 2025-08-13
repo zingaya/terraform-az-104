@@ -33,3 +33,13 @@ module "budget" {
   email = var.email
 }
 
+module "backup" {
+  source = "./backup"
+  rg_name = module.rg.name
+  location = var.location
+  backup_name = local.backup_name_full
+}
+
+module "iad" {
+  source = "./iad"
+}

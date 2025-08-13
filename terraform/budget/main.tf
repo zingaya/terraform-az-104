@@ -16,8 +16,10 @@ resource "azurerm_consumption_budget_subscription" "example" {
   time_grain      = "Monthly"                      # Budget resets every month
 
   time_period {
-    start_date = "2025-08-01T00:00:00Z"           # Budget active start date (UTC)
-    end_date   = "2035-09-01T00:00:00Z"           # Budget active end date (UTC)
+    #start_date = "2025-08-01T00:00:00Z"           # Budget active start date (UTC)
+    #end_date   = "2035-09-01T00:00:00Z"           # Budget active end date (UTC)
+    start_date  = timestamp()
+    end_date  = timeadd(timestamp(), "87600h")     # ~10 years later
   }
 
   notification {
@@ -35,5 +37,9 @@ resource "azurerm_consumption_budget_subscription" "example" {
     threshold_type = "Forecasted"                   # Applies to forecasted budget consumption
 
     contact_emails = var.email                      # Email recipients for this notification
+  }
+
+  lifecycle {
+    ignore_changes = [ time_period ]
   }
 }
