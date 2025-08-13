@@ -5,7 +5,7 @@
 # Create a Virtual Network with a /23 address space (512 IPs)
 resource "azurerm_virtual_network" "main" {
   name                = var.vnet_name
-  address_space       = ["10.0.0.0/23"]
+  address_space       = ["10.0.0.0/23", "10.0.2.0/24"]
   resource_group_name = var.rg_name
   location            = var.location
 }
@@ -23,6 +23,13 @@ resource "azurerm_subnet" "main1" {
   resource_group_name  = var.rg_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet" "main2" {
+  name                 = "${var.subnet_name}-2"
+  resource_group_name  = var.rg_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 ######################################

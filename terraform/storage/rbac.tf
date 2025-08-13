@@ -2,14 +2,19 @@
 # CALCULATE A DYNAMIC EXPIRY DATE
 ######################################
 locals {
-  start_date = timeadd(timestamp(), "240h") # Future start
-  expiry_date = timeadd(local.start_date, "168h") # Expiry 7 days after
+  start_date = timeadd(timestamp(), "24h") # Starts tomorrow
+  expiry_date = timeadd(local.start_date, "24h") # Expiry 1 day later
 }
 
 ######################################
 # GIVE SAS ACCESS TO STORAGE ACCOUNT
 ######################################
+locals {
+  create_sas = false
+}
+
 data "azurerm_storage_account_sas" "account_sas" {
+  count             = local.create_sas ? 1 : 0
   connection_string = resource.azurerm_storage_account.main.primary_connection_string
   https_only        = true
   signed_version    = "2022-11-02"
@@ -47,8 +52,8 @@ data "azurerm_storage_account_sas" "account_sas" {
 }
 
 # Output the SAS
-# Get it later with command: terraform output sas_url
+# Workaround if "count = 0"
 output "sas_token" {
-  value = data.azurerm_storage_account_sas.account_sas.sas
+  value = local.create_sas && length(data.azurerm_storage_account_sas.account_sas) > 0 ? data.azurerm_storage_account_sas.account_sas[0].sas : null
   sensitive = true
 }
