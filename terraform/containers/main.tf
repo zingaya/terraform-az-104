@@ -32,13 +32,9 @@ resource "random_id" "suffix" {
 
 # Local variable to enable or disable the container group creation
 # Optional, may incur costs
-locals {
-  create = false
-}
-
 # Creates a container in ACI using a public Microsoft image
 resource "azurerm_container_group" "hello" {
-  count               = local.create ? 1 : 0   # Creates only if local.create = true
+  count               = 0
   name                = var.containers_name
   location            = var.location
   resource_group_name = var.rg_name

@@ -53,3 +53,25 @@ module "containers" {
   containers_name = local.containers_name_full
   acisubnet = module.network.acisubnet
 }
+
+module "vm" {
+  count = 0 # may incur costs
+  source = "./vm"
+  rg_name = module.rg.name
+  location = var.location
+  adminsubnet = module.network.acisubnet
+  adminnic = module.network.adminnic
+  policy_id = module.backup.policy_id
+  vault_name = module.backup.vault_name
+  ssh_publickey = var.ssh_publickey
+}
+
+module "vmss" {
+  count = 0 # may incur costs
+  source = "./vmsm"
+  rg_name = module.rg.name
+  location = var.location
+  adminsubnet = module.network.acisubnet
+  vault_name = module.backup.vault_name
+  ssh_publickey = var.ssh_publickey
+}

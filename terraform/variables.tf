@@ -65,6 +65,13 @@ variable "email" {
   description = "Email budget alerts (stored in secrets.tfvars)"
 }
 
+# SSH Public key file
+variable "ssh_publickey" {
+  type        = string
+  sensitive   = true
+  description = "SSH Public key file (stored in secrets.tfvars)"
+}
+
 ######################################
 # OPTIONAL: RESOURCE NAME BASES
 ######################################

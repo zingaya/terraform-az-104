@@ -9,12 +9,11 @@ locals {
 ######################################
 # GIVE SAS ACCESS TO STORAGE ACCOUNT
 ######################################
-locals {
-  create_sas = false
-}
-
 data "azurerm_storage_account_sas" "account_sas" {
-  count             = local.create_sas ? 1 : 0
+# For security, just create once, then keep it disabled.
+# Otherwise will create this SAS every time you run "terraform apply"
+  count             = 0
+
   connection_string = resource.azurerm_storage_account.main.primary_connection_string
   https_only        = true
   signed_version    = "2022-11-02"
@@ -54,6 +53,6 @@ data "azurerm_storage_account_sas" "account_sas" {
 # Output the SAS
 # Workaround if "count = 0"
 output "sas_token" {
-  value = local.create_sas && length(data.azurerm_storage_account_sas.account_sas) > 0 ? data.azurerm_storage_account_sas.account_sas[0].sas : null
+  value = length(data.azurerm_storage_account_sas.account_sas) > 0 ? data.azurerm_storage_account_sas.account_sas[0].sas : null
   sensitive = true
 }
