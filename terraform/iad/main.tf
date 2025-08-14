@@ -22,10 +22,14 @@ locals {
       group      = "Sales"
       admin_unit = "North"
     }
+    user4 = {
+      group      = "Devops"
+      admin_unit = "IT"
+    }
   }
 
-  groups = ["CustomerCare", "Sales"]
-  administrative_units = ["North", "South"]
+  groups = ["CustomerCare", "Sales", "Devops"]
+  administrative_units = ["North", "South", "IT"]
 }
 
 ######################################

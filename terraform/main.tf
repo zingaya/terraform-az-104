@@ -43,3 +43,13 @@ module "backup" {
 module "iad" {
   source = "./iad"
 }
+
+module "containers" {
+  source = "./containers"
+  rg_name = module.rg.name
+  user4 = module.iad.user4_object_id
+  location = var.location
+  acr_name = local.acr_name_full
+  containers_name = local.containers_name_full
+  acisubnet = module.network.acisubnet
+}

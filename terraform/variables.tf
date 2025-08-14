@@ -108,7 +108,12 @@ variable "subnet_name" {
 
 variable "containers_name" {
   type        = string
-  default     = "containers"
+  default     = "container"
+}
+
+variable "acr_name" {
+  type        = string
+  default     = "acr"
 }
 
 variable "backup_name" {
@@ -142,6 +147,7 @@ locals {
   function_app_name_full     = "${local.local_prefix}${var.function_app_name}${local.local_postfix}"
   vnet_name_full             = "${local.local_prefix}${var.vnet_name}${local.local_postfix}"
   subnet_name_full           = "${local.local_prefix}${var.subnet_name}${local.local_postfix}"
+  acr_name_full              = "${var.prefix}${var.acr_name}${var.postfix}"
   containers_name_full       = "${local.local_prefix}${var.containers_name}${local.local_postfix}"
   backup_name_full           = "${local.local_prefix}${var.backup_name}${local.local_postfix}"
   iad_name_full              = "${local.local_prefix}${var.iad_name}${local.local_postfix}"
