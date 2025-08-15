@@ -2,10 +2,10 @@
 # MINIMAL LINUX VM
 ######################################
 resource "azurerm_linux_virtual_machine" "admin_vm" {
-  name                = "vm-admin1"
+  name                = var.vm_name
   resource_group_name = var.rg_name
   location            = var.location
-  size                = "Standard_B1ls"  # Cheapest VM size
+  size                = "Standard_B1ls" # Cheapest VM size or B1s (free 12 month and 750hs)
   zone                = "2" # Only Zone 2 and Zone 3 is available for this VM size
 
   admin_username      = "azureuser"
@@ -29,25 +29,11 @@ resource "azurerm_linux_virtual_machine" "admin_vm" {
     version   = "latest"
   }
 
-  # Stop VM after creation to reduce cost
+  # Stop VM after creation to reduce cost, still you'll get charged by the provisioned disk
   provisioner "local-exec" {
-    command = "az vm deallocate --resource-group ${var.rg_name} --name vm-admin1"
+    command = "az vm deallocate --resource-group ${var.rg_name} --name ${var.vm_name}"
   }
 }
-
-######################################
-# Notes if you don't have a NIC already
-######################################
-# If you didn't pre-create a NIC, you could use this instead:
-# 
-# network_interface {
-#   name                          = "admin2"
-#   subnet_id                     = adminsubnet
-#   private_ip_address_allocation = "Dynamic"
-# }
-#
-# Terraform would create the NIC automatically as part of the VM, 
-# but you wouldn't have a separate resource to reference in other modules.
 
 ######################################
 # Backup Protection

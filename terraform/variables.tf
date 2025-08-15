@@ -138,6 +138,16 @@ variable "app_name" {
   default     = "webapp"
 }
 
+variable "vm_name" {
+  type        = string
+  default     = "vm"
+}
+
+variable "vmss_name" {
+  type        = string
+  default     = "vmss"
+}
+
 ######################################
 # LOCALS: AUTOMATED NAME GENERATION
 ######################################
@@ -159,4 +169,6 @@ locals {
   backup_name_full           = "${local.local_prefix}${var.backup_name}${local.local_postfix}"
   iad_name_full              = "${local.local_prefix}${var.iad_name}${local.local_postfix}"
   app_name_full              = "${local.local_prefix}${var.app_name}${local.local_postfix}"
+  vm_name_full               = "${local.local_prefix}${var.vm_name}${local.local_postfix}"
+  vmss_name_full             = "${local.local_prefix}${var.vmss_name}${local.local_postfix}"
 }

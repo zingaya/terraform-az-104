@@ -64,6 +64,7 @@ module "vm" {
   policy_id = module.backup.policy_id
   vault_name = module.backup.vault_name
   ssh_publickey = var.ssh_publickey
+  vm_name = var.vm_name_full
 }
 
 module "vmss" {
@@ -73,4 +74,5 @@ module "vmss" {
   location = var.location
   adminsubnet = module.network.adminsubnet
   ssh_publickey = var.ssh_publickey
+  vmss_name = var.vmss_name_full
 }

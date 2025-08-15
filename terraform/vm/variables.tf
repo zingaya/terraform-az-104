@@ -5,3 +5,4 @@ variable "adminnic" { type = string }
 variable "policy_id" { type = string }
 variable "vault_name" { type = string }
 variable "ssh_publickey" { type = string }
+variable "vm_name" { type = string }
