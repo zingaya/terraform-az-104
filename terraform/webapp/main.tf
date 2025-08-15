@@ -32,7 +32,7 @@ resource "azurerm_linux_web_app" "webapp" {
   service_plan_id     = azurerm_service_plan.webapp.id
 
   site_config {
-    always_on = false  # Disable Always On to save costs, suitable for dev/test
+    always_on = false  # Free tier plan do not allow always_on
 
     application_stack {
       php_version = "8.3"  # Specify PHP version for runtime environment
