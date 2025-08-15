@@ -10,6 +10,8 @@ resource "azurerm_recovery_services_vault" "example" {
 
   public_network_access_enabled = false
 
+  soft_delete_enabled = false
+
   tags = {
     environment = "${terraform.workspace}"
   }

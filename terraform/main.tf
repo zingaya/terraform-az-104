@@ -17,11 +17,17 @@ module "storage" {
   public_ip = var.public_ip
 }
 
+module "staticwebapp" {
+  source = "./staticwebapp"
+  rg_name = module.rg.name
+  location = var.location
+  static_webapp_name = local.static_webapp_name_full
+}
+
 module "webapp" {
   source = "./webapp"
   rg_name = module.rg.name
   location = var.location
-  static_webapp_name = local.static_webapp_name_full
   webapp_name = local.webapp_name_full
 }
 
@@ -64,7 +70,7 @@ module "vm" {
   policy_id = module.backup.policy_id
   vault_name = module.backup.vault_name
   ssh_publickey = var.ssh_publickey
-  vm_name = var.vm_name_full
+  vm_name = local.vm_name_full
 }
 
 module "vmss" {
@@ -74,5 +80,5 @@ module "vmss" {
   location = var.location
   adminsubnet = module.network.adminsubnet
   ssh_publickey = var.ssh_publickey
-  vmss_name = var.vmss_name_full
+  vmss_name = local.vmss_name_full
 }

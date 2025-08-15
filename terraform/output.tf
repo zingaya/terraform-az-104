@@ -4,10 +4,10 @@ output "storage_sas_token" {
 }
 
 output "static_webapp_host" {
-  value     = module.webapp.static_webapp_host
+  value     = module.staticwebapp.static_webapp_host
 }
 
 output "static_webapp_token" {
-  value     = module.webapp.static_webapp_token
+  value     = module.staticwebapp.static_webapp_token
   sensitive = true
 }

@@ -1,16 +1,4 @@
 ######################################
-# STATIC WEB APP - lightweight front-end hosting
-######################################
-resource "azurerm_static_web_app" "staticwebapp" {
-  name                = var.static_webapp_name
-  resource_group_name = var.rg_name
-  location            = var.location
-
-  sku_tier = "Free"   # Free tier suitable for dev/test or small workloads
-  sku_size = "Free"
-}
-
-######################################
 # APP SERVICE PLAN - hosting environment for web app
 ######################################
 resource "azurerm_service_plan" "webapp" {
@@ -32,10 +20,10 @@ resource "azurerm_linux_web_app" "webapp" {
   service_plan_id     = azurerm_service_plan.webapp.id
 
   site_config {
-    always_on = false  # Free tier plan do not allow always_on
+    always_on         = false  # Free tier plan do not allow always_on
 
     application_stack {
-      php_version = "8.3"  # Specify PHP version for runtime environment
+      php_version     = "8.3"  # Specify PHP version for runtime environment
     }
   }
 }

@@ -39,6 +39,7 @@ resource "azurerm_linux_virtual_machine" "admin_vm" {
 # Backup Protection
 ######################################
 resource "azurerm_backup_protected_vm" "vm_backup" {
+  count               = 0
   resource_group_name = var.rg_name
   recovery_vault_name = var.vault_name      # input variable
   source_vm_id        = azurerm_linux_virtual_machine.admin_vm.id
