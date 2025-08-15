@@ -1,9 +1,6 @@
 ######################################
 # MINIMAL LINUX VM
 ######################################
-# Local variable to enable or disable the container group creation
-# Optional, may incur costs
-
 resource "azurerm_linux_virtual_machine" "admin_vm" {
   name                = "vm-admin1"
   resource_group_name = var.rg_name

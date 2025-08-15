@@ -4,6 +4,11 @@ module "rg" {
   location = var.location
 }
 
+module "budget" {
+  source = "./budget"
+  email = var.email
+}
+
 module "storage" {
   source = "./storage"
   rg_name = module.rg.name
@@ -26,11 +31,6 @@ module "network" {
   location = var.location
   vnet_name = local.vnet_name_full
   subnet_name = local.subnet_name_full
-}
-
-module "budget" {
-  source = "./budget"
-  email = var.email
 }
 
 module "backup" {
@@ -59,7 +59,7 @@ module "vm" {
   source = "./vm"
   rg_name = module.rg.name
   location = var.location
-  adminsubnet = module.network.acisubnet
+  adminsubnet = module.network.adminsubnet
   adminnic = module.network.adminnic
   policy_id = module.backup.policy_id
   vault_name = module.backup.vault_name
@@ -68,10 +68,9 @@ module "vm" {
 
 module "vmss" {
   count = 0 # may incur costs
-  source = "./vmsm"
+  source = "./vmss"
   rg_name = module.rg.name
   location = var.location
-  adminsubnet = module.network.acisubnet
-  vault_name = module.backup.vault_name
+  adminsubnet = module.network.adminsubnet
   ssh_publickey = var.ssh_publickey
 }
